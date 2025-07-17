@@ -1,11 +1,12 @@
 import cv2
 from ultralytics import YOLO
+import time
 
 # Load your trained YOLOv8 model
 model = YOLO("/Users/ashwinaggarwal/CS_Projects/driveway-shot-tracker/driveway basketball v2.v2-version1july16th.yolov8/runs/detect/train/weights/best.pt")
 
 # Open the video file (replace with your video path)
-cap = cv2.VideoCapture("/Users/ashwinaggarwal/CS_Projects/driveway-shot-tracker/outputs/splitclips_from_timestamps/cleaned_full_clip.mp4")
+cap = cv2.VideoCapture("/Users/ashwinaggarwal/CS_Projects/driveway-shot-tracker/outputs/splitclips_from_timestamps/cleaned_testing_video.mp4")
 
 # Track previous ball center for motion analysis
 prev_ball_center = None
@@ -67,6 +68,18 @@ shot_logged = False  # Whether the shot has been logged
 total_shots = 0
 makes = 0
 a,b,c = None, None, None  # Points for triangle method
+last_ball_seen_time = time.time()
+
+# Function to reset the shot tracking state not the ones that keep changing like makes and shot attempts so don't reset total_shots and makes
+def restart_shot_state():
+    global above_hoopbox_points, in_hoopbox_points, below_hoopbox_points, ball_history, shot_started, shot_logged, a, b, c
+    above_hoopbox_points = []
+    in_hoopbox_points = []
+    below_hoopbox_points = []
+    ball_history = []
+    shot_started = False
+    shot_logged = False
+    a, b, c = None, None, None
 
 
 while True:
@@ -105,47 +118,46 @@ while True:
 
     #start tracking the shot if the ball is above the hoop box
     if not shot_started and len(above_hoopbox_points) > 0:
+        print("shot started")
         shot_started = True
     
     #log the shot once it finishes, meaning the ball is below the hoop box
     if shot_started and not shot_logged and len(below_hoopbox_points) > 0:
-        total_shots += 1
         shot_logged = True
 
-    if shot_started and not shot_logged and not ball_center: #in case ball bricks so hard it is out of frame
+    # Timeout-based miss (e.g., ball disappears)
+    if shot_started and not shot_logged and time.time() - last_ball_seen_time > 2.0:
         total_shots += 1
-        shot_logged = True
+        print(f"❌ #{total_shots} Shot Missed (timeout)")
+        restart_shot_state() # Reset shot tracking state
 
 
+    # Check for a make and Reset shot tracking when a shot is logged
+    # Check for a make and reset tracking
+    elif shot_logged:
+        if len(above_hoopbox_points) > 0 and len(below_hoopbox_points) > 0:
+            a = above_hoopbox_points[-1]  # last point above hoop
+            b = (int(hoop_x), int(hoop_y))  # hoop center
+            c = below_hoopbox_points[0]  # first point below hoop
 
-        # now detect if it was a make using triangle method
-        a = above_hoopbox_points[-1]  # last point above hoop
-        b = (int(hoop_x), int(hoop_y))  # hoop center
-        c = below_hoopbox_points[0]  # first point below hoop
+            if are_colinear_enough(a, b, c):
+                makes += 1
+                print(f"🎯 #{total_shots} Shot Made!")
+            else:
+                print(f'❌ #{total_shots}Shot Missed! triangle is too big')
+            
+        total_shots += 1
+        restart_shot_state() # Reset shot tracking
+       
 
 
-        if are_colinear_enough(a, b, c):
-            makes += 1
-            print('🎯 Shot Made!')
-        else:
-            print('❌ Shot Missed!')
-
-        # Reset shot tracking
-        if shot_logged:
-            above_hoopbox_points = []
-            in_hoopbox_points =[]
-            below_hoopbox_points = []
-            ball_history = []
-            shot_started = False # Whether a shot has started
-            shot_logged = False  # Whether the shot has been logged
-            total_shots = 0
-            makes = 0
-            a,b,c = None, None, None  # Points for triangle method
-
+    # If no ball is seen for two seconds, clear the history
+    if not shot_started and time.time() - last_ball_seen_time > 2.0:
+        restart_shot_state()
 
     #Show the shot making percentage on the frame
-    fg_percent = (100 * makes / total_shots) if total_shots > 0 else 0    
-    score_text = f"FG%: {makes} / {total_shots} = {fg_percent}" 
+    fg_percent = round((100 * makes / total_shots), 2) if total_shots > 0 else 0
+    score_text = f"FG%: {makes} / {total_shots} = {fg_percent}%" 
     cv2.putText(frame, score_text, (20, 130),
     cv2.FONT_HERSHEY_SIMPLEX, 4, (255, 0, 255), thickness=3)
 
@@ -155,6 +167,8 @@ while True:
 
     #Draw current ball center and update history
     if ball_center:
+        last_ball_seen_time = time.time() # updating the last time a ball was seen
+
         cx, cy = int(ball_center[0]), int(ball_center[1])
         cv2.circle(frame, (cx, cy), 10, (0, 0, 255), -1)  # red dot
         ball_history.append((cx, cy))
@@ -197,8 +211,7 @@ while True:
     # Draw history of red dots
     for (hx, hy) in ball_history:
         cv2.circle(frame, (hx, hy), 10, (0, 0, 255), -1)
-    # for p in [a,b,c]:
-    #     cv2.circle(frame, p, 20, (0, 255, 80), -1)
+    
 
 
 
@@ -212,32 +225,3 @@ while True:
 # Cleanup
 cap.release()
 cv2.destroyAllWindows()
-
-
-  # if prev_ball_center:
-        #     prev_cx, prev_cy = int(prev_ball_center[0]), int(prev_ball_center[1])
-
-        #     # Is the ball falling?
-        #     falling = cy > prev_cy
-
-        #     # --- SHOT TAKEN ---
-        #     if not shot_in_progress and prev_cy < hoop_bottom and cy >= hoop_bottom:
-        #         total_shots += 1
-        #         shot_in_progress = True
-        #         made_in_this_shot = False
-        #         print("🎯 Shot Taken!")
-
-        #     # --- SHOT MADE ---
-        #     if shot_in_progress and not made_in_this_shot:
-        #         if hoop_left <= cx <= hoop_right and hoop_top <= cy <= hoop_bottom:
-        #             makes += 1
-        #             made_in_this_shot = True
-        #             print(" Shot Made!")
-
-        #     # --- Reset when ball drops far below or disappears ---
-        #     if shot_in_progress and cy > hoop_bottom + 100:
-        #         shot_in_progress = False
-        #         made_in_this_shot = False
-
-        #the green line needs to go
-        # old shots of red dots
