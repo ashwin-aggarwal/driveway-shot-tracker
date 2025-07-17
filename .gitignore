@@ -1,0 +1,20 @@
+# Python envs
+venv/
+__pycache__/
+*.pyc
+
+# Ultralytics output
+runs/
+
+# Model weights
+*.pt
+
+# Video files
+*.mp4
+*.avi
+*.mov
+*.jpeg
+*.png
+
+# System files
+.DS_Store
