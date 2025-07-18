@@ -9,7 +9,6 @@ runs/
 
 # Model weights
 *.pt
-*testvideos/output.mp4
 # Video files
 *.avi
 *.mov
