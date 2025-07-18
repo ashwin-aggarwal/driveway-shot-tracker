@@ -25,15 +25,15 @@ Custom YOLOv8 model trained on basketball video clips:
 
 ## 🗂️ File Structure
 driveway-shot-tracker/
-├── detector.py # Core detection & tracking logic
-├── main.py # Main script to run everything
-├── ffmpeg_utils.py # FFmpeg-based video cleaner
-├── yolov8_model/
-│ ├── model.pt # Trained YOLOv8 weights
-│ └── data.yaml # Class labels
-├── requirements.txt # Python dependencies
-└── README.md # This file
-testvideos folder has examples of an input before the cleaning, after the cleaning, and the output.
+- detector.py # Core detection & tracking logic
+- main.py # Main script to run everything
+- ffmpeg_utils.py # FFmpeg-based video cleaner
+- yolov8_model/
+  -  model.pt # Trained YOLOv8 weights
+  - data.yaml # Class labels
+- requirements.txt # Python dependencies
+-  README.md # This file
+- testvideos has examples of an input before the cleaning, after the cleaning, and the output.
 
 
 ## 🚀 Getting Started
