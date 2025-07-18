@@ -11,8 +11,16 @@ This project uses a custom-trained YOLOv8 model to detect basketball shots in vi
 - 🎯 Logs shot outcomes with visual and console feedback
 - 🧼 Includes FFmpeg-based script to **clean and re-encode videos** for smoother YOLO performance
 
-![Made Shot](testvideos/make.gif)
-![Missed Shot](testvideos/miss.gif)
+<table>
+  <tr>
+    <td><img src="testvideos/make.gif" width="300"/></td>
+    <td><img src="testvideos/miss.gif" width="300"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Made Shot</b></td>
+    <td align="center"><b>Missed Shot</b></td>
+  </tr>
+</table>
 
 ## 🧠 Model Details
 
