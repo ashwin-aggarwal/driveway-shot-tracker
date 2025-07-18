@@ -2,6 +2,7 @@
 venv/
 __pycache__/
 *.pyc
+not4github/
 
 # Ultralytics output
 runs/
@@ -10,11 +11,10 @@ runs/
 *.pt
 
 # Video files
-*.mp4
 *.avi
 *.mov
 *.jpeg
-*.png
+
 
 # System files
 .DS_Store
