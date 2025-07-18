@@ -1,32 +1,27 @@
 import os
-import argparse
-from utils.ffmpeg_utils import clean_video  
+from utils.ffmpeg_utils import clean_video
 from detector import run_detection
 
-
 def main():
-    parser = argparse.ArgumentParser(description="Basketball Shot Detector Pipeline")
-    parser.add_argument("--input", required=True, help="Path to input video file")
-    parser.add_argument("--output", help="Path to save cleaned video (optional)")
-    args = parser.parse_args()
+    input_path = input("🎥 Enter path to your input video: ").strip()
 
-    input_path = args.input
+    # Ensure the input file exists
+    if not os.path.exists(input_path):
+        print(f"❌ File not found: {input_path}")
+        return
 
-    # If no output path provided, auto-generate it
-    if args.output:
-        output_path = args.output
-    else:
-        directory, filename = os.path.split(input_path)
-        cleaned_name = "cleaned_" + filename
-        output_path = os.path.join(directory, cleaned_name)
+    # Generate cleaned output path
+    base_name = os.path.basename(input_path)
+    cleaned_path = os.path.join("testvideos", "cleaned_" + base_name)
 
-    # Step 1: Clean the input video using FFmpeg
-    print("🔄 Cleaning video...")
-    clean_video(input_path, output_path)
+    # Make sure outputs directory exists
+    os.makedirs("testvideos", exist_ok=True)
 
-    # Step 2: Run detection on the cleaned video
-    print("🏀 Running basketball shot detection...")
-    run_detection(output_path)
+    # Step 1: Clean video using ffmpeg
+    clean_video(input_path, cleaned_path)
+
+    # Step 2: Run detection
+    run_detection(cleaned_path)
 
 if __name__ == "__main__":
     main()
