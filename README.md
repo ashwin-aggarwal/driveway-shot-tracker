@@ -96,6 +96,12 @@ python main.py
 
 Press the q key to end the shot tracking visual screen
 
+-Limitations:
+- avoid doing layups, this model mostly works on jumpshots 
+
+Goals:
+- Eventually I want this to work on live footage
+
     🧑‍💻 Author
 
     Ashwin Aggarwal
