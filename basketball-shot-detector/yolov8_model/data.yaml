@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 2
+names: ['ball', 'hoop']
+
+roboflow:
+  workspace: basketball-m88zp
+  project: driveway-basketball-v2
+  version: 2
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/basketball-m88zp/driveway-basketball-v2/dataset/2
