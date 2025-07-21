@@ -14,7 +14,9 @@ def run_detection(video_path):
     prev_ball_center = None
 
 
-
+    #miss and make lists for the timestamps for visualizations
+    misses = []
+    makes = []
     # === Helper function to extract the most confident ball and hoop ===
     def extract_ball_and_hoop(results):
         detections = results[0].boxes
@@ -68,11 +70,11 @@ def run_detection(video_path):
     shot_started = False # Whether a shot has started
     shot_logged = False  # Whether the shot has been logged
     total_shots = 0
-    makes = 0
+    total_makes = 0
     a,b,c = None, None, None  # Points for triangle method
     last_ball_seen_time = time.time()
 
-    # Function to reset the shot tracking state not the ones that keep changing like makes and shot attempts so don't reset total_shots and makes
+    # Function to reset the shot tracking state not the ones that keep changing like total_makes and shot attempts so don't reset total_shots and total_makes
     def restart_shot_state():
         nonlocal above_hoopbox_points, in_hoopbox_points, below_hoopbox_points, ball_history, shot_started, shot_logged, a, b, c
         above_hoopbox_points = []
@@ -131,6 +133,7 @@ def run_detection(video_path):
         if shot_started and not shot_logged and time.time() - last_ball_seen_time > 2.0:
             total_shots += 1
             print(f"❌ #{total_shots} Shot Missed (timeout)")
+            misses.append(time.time())
             restart_shot_state() # Reset shot tracking state
 
 
@@ -143,10 +146,12 @@ def run_detection(video_path):
                 c = below_hoopbox_points[0]  # first point below hoop
 
                 if are_colinear_enough(a, b, c):
-                    makes += 1
+                    total_makes += 1
                     print(f"🎯 #{total_shots} Shot Made!")
+                    makes.append(time.time())
                 else:
                     print(f'❌ #{total_shots}Shot Missed! triangle is too big')
+                    misses.append(time.time())
                 
             total_shots += 1
             restart_shot_state() # Reset shot tracking
@@ -158,8 +163,8 @@ def run_detection(video_path):
             restart_shot_state()
 
         #Show the shot making percentage on the frame
-        fg_percent = round((100 * makes / total_shots), 2) if total_shots > 0 else 0
-        score_text = f"FG%: {makes} / {total_shots} = {fg_percent}%" 
+        fg_percent = round((100 * total_makes / total_shots), 2) if total_shots > 0 else 0
+        score_text = f"FG%: {total_makes} / {total_shots} = {fg_percent}%" 
         cv2.putText(frame, score_text, (20, 130),
         cv2.FONT_HERSHEY_SIMPLEX, 4, (255, 0, 255), thickness=3)
 
@@ -227,3 +232,5 @@ def run_detection(video_path):
     # Cleanup
     cap.release()
     cv2.destroyAllWindows()
+
+    return misses, makes
